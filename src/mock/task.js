@@ -39,7 +39,7 @@ export const tasks = [
     {
         id: 8,
         title: 'Выполнить пет-проект',
-        status: 'backlog'
+        status: 'basket'
     },
     {
         id: 9,

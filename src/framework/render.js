@@ -13,8 +13,8 @@ export function createElement(template) {
 
 export function render(component, container, place = RenderPosition.BEFOREEND) {
   if (component instanceof HTMLElement) {
-    container.insertAdjacentElement(place, component);
+      container.insertAdjacentElement(place, component);
   } else {
-    container.insertAdjacentElement(place, component.element);
+      container.insertAdjacentElement(place, component.element);
   }
 }

@@ -11,21 +11,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const taskboardContainer = document.querySelector('.taskboard');
 
     if (bodyContainer && formContainer && taskboardContainer) {
-        // Рендерим header
         const headerComponent = new HeaderComponent();
         render(headerComponent, bodyContainer, RenderPosition.BEFOREBEGIN);
 
-        // Рендерим форму добавления
         const formAddTaskComponent = new FormAddTaskComponent();
         render(formAddTaskComponent, formContainer);
 
-        // Инициализируем модель
         const taskModel = new TaskModel(tasks);
-
-        // Инициализируем презентер
         const tasksBoardPresenter = new TasksBoardPresenter(taskboardContainer, taskModel);
+        
+        // Добавляем обработчик формы
+        const taskForm = formAddTaskComponent.element;
+        const taskInput = taskForm.querySelector('.add-task__input');
+
+        taskForm.addEventListener('submit', (evt) => {
+            evt.preventDefault();
+            const title = taskInput.value.trim();
+            
+            if (title) {
+                tasksBoardPresenter.createTask(title);
+                taskInput.value = '';
+            }
+        });
+
+        // Инициализируем презентер после настройки всех обработчиков
         tasksBoardPresenter.init();
-    } else {
-        console.error('Не найдены необходимые контейнеры на странице');
     }
 });

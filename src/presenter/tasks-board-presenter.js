@@ -5,30 +5,53 @@ import NoTasksComponent from '../view/no-tasks-component.js';
 import ClearBasketButtonComponent from '../view/clear-basket-button-component.js';
 import {render} from '../framework/render.js';
 import {TaskStatus, TaskStatusLabel} from '../const.js';
+import {generateID} from '../utils.js';
 
 export default class TasksBoardPresenter {
     #boardContainer = null;
     #taskModel = null;
     #boardComponent = new TaskBoardComponent();
-    #tasksByStatus = new Map();
+    #taskLists = new Map();
 
     constructor(boardContainer, taskModel) {
         this.#boardContainer = boardContainer;
         this.#taskModel = taskModel;
+        this.#taskModel.addObserver(this.#handleModelChange.bind(this));
     }
 
     init() {
-        this.#groupTasksByStatus();
         this.#renderBoard();
+        this.#setupEventListeners();
     }
 
-    #groupTasksByStatus() {
-        this.#taskModel.tasks.forEach((task) => {
-            if (!this.#tasksByStatus.has(task.status)) {
-                this.#tasksByStatus.set(task.status, []);
+    createTask(title) {
+        const newTask = {
+            id: generateID(),
+            title,
+            status: TaskStatus.BACKLOG
+        };
+        this.#taskModel.addTask(newTask);
+    }
+
+    #setupEventListeners() {
+        this.#boardComponent.element.addEventListener('click', (evt) => {
+            if (evt.target.closest('[data-basket-clear]')) {
+                this.#taskModel.clearBasket();
             }
-            this.#tasksByStatus.get(task.status).push(task);
         });
+    }
+
+    #handleModelChange() {
+        this.#updateTasks();
+        this.#updateClearBasketButton();
+    }
+
+    #updateClearBasketButton() {
+        const clearButton = this.#boardComponent.element.querySelector('[data-basket-clear]');
+        if (clearButton) {
+            const basketTasks = this.#taskModel.tasks.filter(task => task.status === TaskStatus.BASKET);
+            clearButton.disabled = basketTasks.length === 0;
+        }
     }
 
     #renderTask(task, container) {
@@ -39,54 +62,45 @@ export default class TasksBoardPresenter {
         render(new NoTasksComponent(TaskStatusLabel[status]), container);
     }
 
-    #renderBasketList(status) {
-        const listComponent = new TaskListComponent(TaskStatusLabel[status], status);
-        render(listComponent, this.#boardComponent.element);
-
-        const tasks = this.#tasksByStatus.get(status) || [];
-        
-        if (tasks.length === 0) {
-            this.#renderNoTasks(status, listComponent.element);
-        } else {
-            tasks.forEach((task) => this.#renderTask(task, listComponent.element));
-        }
-
-        render(new ClearBasketButtonComponent(), listComponent.element);
-    }
-
     #renderTasksList(status) {
         const listComponent = new TaskListComponent(TaskStatusLabel[status], status);
         render(listComponent, this.#boardComponent.element);
-
-        const tasks = this.#tasksByStatus.get(status) || [];
         
-        if (tasks.length === 0) {
-            this.#renderNoTasks(status, listComponent.element);
-        } else {
-            tasks.forEach((task) => this.#renderTask(task, listComponent.element));
+        const tasksContainer = listComponent.element.querySelector('.tasks-container');
+        this.#taskLists.set(status, { component: listComponent, container: tasksContainer });
+
+        if (status === TaskStatus.BASKET) {
+            const clearBasketButton = new ClearBasketButtonComponent();
+            render(clearBasketButton, listComponent.element);
+            this.#updateClearBasketButton();
         }
     }
 
-    #renderBoard() {
-        render(this.#boardComponent, this.#boardContainer);
-    
-        Object.values(TaskStatus).forEach((status) => {
-            const listComponent = new TaskListComponent(TaskStatusLabel[status], status);
-            render(listComponent, this.#boardComponent.element);
-    
-            const tasks = this.#tasksByStatus.get(status) || [];
+    #updateTasks() {
+        this.#taskLists.forEach((list, status) => {
+            const tasksContainer = list.container;
+            tasksContainer.innerHTML = '';
+
+            const statusTasks = this.#taskModel.tasks.filter(task => task.status === status);
             
-            if (tasks.length === 0) {
-                render(new NoTasksComponent(status), listComponent.element);
+            if (statusTasks.length === 0) {
+                this.#renderNoTasks(status, tasksContainer);
             } else {
-                tasks.forEach((task) => {
-                    render(new TaskComponent(task), listComponent.element);
-                });
-            }
-    
-            if (status === TaskStatus.BASKET) {
-                render(new ClearBasketButtonComponent(), listComponent.element);
+                statusTasks.forEach(task => this.#renderTask(task, tasksContainer));
             }
         });
+    }
+
+    #renderBoard() {
+        this.#boardContainer.innerHTML = '';
+        this.#taskLists.clear();
+
+        render(this.#boardComponent, this.#boardContainer);
+
+        Object.values(TaskStatus).forEach(status => {
+            this.#renderTasksList(status);
+        });
+
+        this.#updateTasks();
     }
 }
