@@ -38,7 +38,7 @@ export const tasks = [
     },
     {
         id: 8,
-        title: 'Выполнить пет-проект',
+        title: 'Проект',
         status: 'basket'
     },
     {
