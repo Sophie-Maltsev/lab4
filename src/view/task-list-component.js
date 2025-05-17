@@ -1,9 +1,8 @@
-// Новая версия
 import {AbstractComponent} from '../framework/view/abstract-component.js';
 
 export default class TaskListComponent extends AbstractComponent {
-    #title = null; // приватное поле для заголовка
-    #status = null; // приватное поле для статуса
+    #title = null;
+    #status = null;
 
     constructor(title, status) {
         super();
@@ -15,6 +14,7 @@ export default class TaskListComponent extends AbstractComponent {
         return `
             <div class="taskboard__list" data-status="${this.#status}">
                 <h3 class="taskboard__heading">${this.#title}</h3>
+                <div class="tasks-container"></div>
             </div>
         `;
     }

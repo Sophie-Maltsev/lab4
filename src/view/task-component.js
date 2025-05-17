@@ -1,18 +1,16 @@
-// Новая версия
 import {AbstractComponent} from '../framework/view/abstract-component.js';
 
 export default class TaskComponent extends AbstractComponent {
-    #task = null; // приватное поле для хранения данных задачи
+    #task = null;
 
     constructor(task) {
-        super(); // вызываем конструктор родительского класса
-        this.#task = task; // сохраняем данные задачи в приватное поле
+        super();
+        this.#task = task;
     }
 
-    // переопределяем геттер template из абстрактного класса
     get template() {
         return `
-            <div class="taskboard__item task">
+            <div class="taskboard__item task" draggable="true" data-task-id="${this.#task.id}">
                 <div class="task__body">
                     <p class="task__view">${this.#task.title}</p>
                 </div>

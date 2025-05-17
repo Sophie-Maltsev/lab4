@@ -121,10 +121,10 @@ body {
 }
 
 .clear-basket-button:disabled {
-    background-color: #cccccc; 
-    color: #666666;      
-    cursor: not-allowed; 
-    opacity: 0.7;       
+    background-color: #cccccc;
+    color: #666666;
+    cursor: not-allowed;
+    opacity: 0.7;
 }
 
 .task {
